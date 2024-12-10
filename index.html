@@ -3,92 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>お問い合わせフォーム</title>
+    <title>勤怠打刻フォーム</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
+            color: #ffffff;
         }
         .form-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 30px;
+            width: 350px;
+            text-align: center;
         }
-        input, textarea {
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        input {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
             font-size: 16px;
+            color: #333;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            box-shadow: 0 0 10px rgba(31, 38, 135, 0.5);
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
         }
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 12px 20px;
+            border-radius: 10px;
             font-size: 16px;
+            cursor: pointer;
+            width: 48%;
+            transition: all 0.3s ease;
         }
         button:hover {
-            background-color: #45a049;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(2px);
         }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <h1>お問い合わせフォーム</h1>
-        <form id="contactForm">
-            <label for="name">お名前:</label>
-            <input type="text" id="name" name="name" required>
-            <label for="email">メールアドレス:</label>
-            <input type="email" id="email" name="email" required>
-            <label for="message">メッセージ:</label>
-            <textarea id="message" name="message" rows="4" required></textarea>
-            <button type="submit">送信</button>
+        <h1>勤怠打刻</h1>
+        <form id="timeForm">
+            <input type="text" id="name" name="name" placeholder="お名前を入力" required>
+            <div class="button-group">
+                <button type="button" id="checkIn">出勤</button>
+                <button type="button" id="checkOut">退勤</button>
+            </div>
         </form>
     </div>
     <script>
-        document.getElementById('contactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
+        async function sendData(actionType) {
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                alert("お名前を入力してください。");
+                return;
+            }
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const latitude = position.coords.latitude;
                     const longitude = position.coords.longitude;
-
-                    // フォームのデータを取得
-                    const formData = new FormData(e.target);
                     const data = new URLSearchParams();
-                    for (const pair of formData) {
-                        data.append(pair[0], pair[1]);
-                    }
-                    // 緯度と経度を追加
+                    data.append("name", name);
+                    data.append("actionType", actionType);
                     data.append("latitude", latitude);
                     data.append("longitude", longitude);
 
-                    // Google Apps ScriptのウェブアプリURL
-                    const scriptURL = "https://script.google.com/macros/s/AKfycbx5zSwfqbX72nR-KEJuZvD3wVFr37aznoU_5E2NdjUezr87K5IE73Q2qUg04nw969DC1g/exec";
-
-                    // データを送信
+                    const scriptURL = "https://script.google.com/macros/s/AKfycbyAGHrP1ZJ1j8pN4GtcrysZzh0eOZvnHk78P13Ahl20TIX8GN4qPGDl6Co4fKcJkDhLtA/exec";
+                    
                     try {
                         const response = await fetch(scriptURL, {
                             method: 'POST',
                             body: data,
                         });
                         const text = await response.text();
-                        alert(text); // レスポンスを表示
+                        alert(text);
                     } catch (error) {
                         console.error("データ送信中にエラーが発生しました。", error);
                         alert("データ送信中にエラーが発生しました。");
@@ -99,7 +117,9 @@
                     alert("位置情報の取得に失敗しました。");
                 }
             );
-        });
+        }
+        document.getElementById('checkIn').addEventListener('click', () => sendData('出勤'));
+        document.getElementById('checkOut').addEventListener('click', () => sendData('退勤'));
     </script>
 </body>
 </html>
